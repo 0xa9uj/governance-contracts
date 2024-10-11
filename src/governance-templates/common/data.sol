@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.20;
 
 import {TimelockControllerUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
+import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
 struct ERC20GovernorParams {
         string name;
-        address token;
+        IVotes token;
         TokenClockMode tokenClockMode;
         uint256 quorum;
         address initialOwner;
@@ -13,6 +14,7 @@ struct ERC20GovernorParams {
     }
 
      struct TimelockParams {
+        address admin;
         uint256 minDelay;
         address[] proposers;
         address[] executors;

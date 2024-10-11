@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/governance/GovernorUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorSettingsUpgradeable.sol";
@@ -21,7 +21,7 @@ contract MyGovernor is Initializable, GovernorUpgradeable, GovernorSettingsUpgra
         initializer public
     {
         __Governor_init(_governorParams.name);
-        __GovernorSettings_init(_governorParams.tokenClockMode.initialVotingDelay, _governorParams.tokenClockMode.initialVotingPeriod, _governorParams.tokenClockMode.proposalThreshold);
+        __GovernorSettings_init(_governorParams.tokenClockMode.initialVotingDelay, _governorParams.tokenClockMode.initialVotingPeriod, _governorParams.tokenClockMode.initialProposalThreshold);
         __GovernorCountingSimple_init();
         __GovernorVotes_init(_governorParams.token);
         __GovernorVotesQuorumFraction_init(_governorParams.quorum);

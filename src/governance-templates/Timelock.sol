@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.26;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/governance/TimelockControllerUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {Timelock} from "./common/data.sol";
+import {TimelockParams} from "./common/data.sol";
 
 contract Timelock is Initializable, TimelockControllerUpgradeable, OwnableUpgradeable{
 
@@ -13,11 +13,10 @@ contract Timelock is Initializable, TimelockControllerUpgradeable, OwnableUpgrad
         _disableInitializers();
     }
 
-    function initialize(Timelock calldata _timelock)
+    function initialize(TimelockParams calldata _timelock)
         initializer public
     {
-        __TimelockController_init(_timelock.minDelay, _timelock.proposers, _timelock.executors);
-        __Ownable_init(_governorParams.initialOwner);
+        __TimelockController_init(_timelock.minDelay, _timelock.proposers, _timelock.executors, _timelock.admin);
         //proxy init
     }
 
