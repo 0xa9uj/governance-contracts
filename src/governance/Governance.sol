@@ -14,7 +14,8 @@ import {GovernorTimelockControlUpgradeable} from
     "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {ERC20GovernorParams} from "../common/data.sol";
+import {GovernorParams} from "../common/data.sol";
+import {validGovernanceParams} from "../common/errors.sol";
 
 contract MyGovernor is
     Initializable,
@@ -26,12 +27,15 @@ contract MyGovernor is
     GovernorTimelockControlUpgradeable,
     OwnableUpgradeable
 {
+    using validGovernanceParams for GovernorParams;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(ERC20GovernorParams calldata _governorParams) public initializer {
+    function initialize(GovernorParams calldata _governorParams) public initializer {
+        _governorParams.isInvalid();
         __Governor_init(_governorParams.name);
         __GovernorSettings_init(
             _governorParams.tokenClockMode.initialVotingDelay,

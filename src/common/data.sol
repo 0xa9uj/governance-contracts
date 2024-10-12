@@ -2,10 +2,10 @@
 pragma solidity ^0.8.20;
 
 import {TimelockControllerUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
+    "@openzeppelin/contracts-upgradeable/governance/TimelockControllerUpgradeable.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
-struct ERC20GovernorParams {
+struct GovernorParams {
     string name;
     IVotes token;
     TokenClockMode tokenClockMode;
