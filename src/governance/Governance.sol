@@ -1,21 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {GovernorUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/GovernorUpgradeable.sol";
-import {GovernorSettingsUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorSettingsUpgradeable.sol";
-import {GovernorCountingSimpleUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorCountingSimpleUpgradeable.sol";
-import {GovernorVotesUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesUpgradeable.sol";
-import {GovernorVotesQuorumFractionUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesQuorumFractionUpgradeable.sol";
-import {GovernorTimelockControlUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {GovernorParams} from "../common/data.sol";
-import {validGovernanceParams} from "../common/errors.sol";
+import { GovernorUpgradeable } from '@openzeppelin/contracts-upgradeable/governance/GovernorUpgradeable.sol';
+import { GovernorSettingsUpgradeable } from
+    '@openzeppelin/contracts-upgradeable/governance/extensions/GovernorSettingsUpgradeable.sol';
+import { GovernorCountingSimpleUpgradeable } from
+    '@openzeppelin/contracts-upgradeable/governance/extensions/GovernorCountingSimpleUpgradeable.sol';
+import { GovernorVotesUpgradeable } from
+    '@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesUpgradeable.sol';
+import { GovernorVotesQuorumFractionUpgradeable } from
+    '@openzeppelin/contracts-upgradeable/governance/extensions/GovernorVotesQuorumFractionUpgradeable.sol';
+import { GovernorTimelockControlUpgradeable } from
+    '@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol';
+import { Initializable } from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+import { OwnableUpgradeable } from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import { GovernorParams } from '../common/data.sol';
+import { validGovernanceParams } from '../common/errors.sol';
+import { IVotes } from '@openzeppelin/contracts/governance/utils/IVotes.sol';
+import { UUPSUpgradeable } from '@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol';
+import { Timelock } from './Timelock.sol';
 
 contract MyGovernor is
     Initializable,
@@ -25,7 +28,8 @@ contract MyGovernor is
     GovernorVotesUpgradeable,
     GovernorVotesQuorumFractionUpgradeable,
     GovernorTimelockControlUpgradeable,
-    OwnableUpgradeable
+    OwnableUpgradeable,
+    UUPSUpgradeable
 {
     using validGovernanceParams for GovernorParams;
 
@@ -34,8 +38,8 @@ contract MyGovernor is
         _disableInitializers();
     }
 
-    function initialize(GovernorParams calldata _governorParams) public initializer {
-        _governorParams.isInvalid();
+    function initialize(GovernorParams memory _governorParams, address _timelock) public initializer {
+        validGovernanceParams.isInvalid(_governorParams);
         __Governor_init(_governorParams.name);
         __GovernorSettings_init(
             _governorParams.tokenClockMode.initialVotingDelay,
@@ -43,39 +47,38 @@ contract MyGovernor is
             _governorParams.tokenClockMode.initialProposalThreshold
         );
         __GovernorCountingSimple_init();
-        __GovernorVotes_init(_governorParams.token);
+        __GovernorVotes_init(IVotes(_governorParams.token));
         __GovernorVotesQuorumFraction_init(_governorParams.quorum);
-        __GovernorTimelockControl_init(_governorParams.timelock);
+        __GovernorTimelockControl_init(Timelock(payable(_timelock)));
         __Ownable_init(_governorParams.initialOwner);
-        //proxy init
     }
 
-    // function _authorizeUpgrade(address newImplementation)
-    //     internal
-    //     onlyOwner
-    //     override
-    // {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
 
     // The following functions are overrides required by Solidity.
 
-    function votingDelay() public view override(GovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint256) {
+    function votingDelay() public view override(GovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint) {
         return super.votingDelay();
     }
 
-    function votingPeriod() public view override(GovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint256) {
+    function votingPeriod() public view override(GovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint) {
         return super.votingPeriod();
     }
 
-    function quorum(uint256 blockNumber)
+    function quorum(
+        uint blockNumber
+    )
         public
         view
         override(GovernorUpgradeable, GovernorVotesQuorumFractionUpgradeable)
-        returns (uint256)
+        returns (uint)
     {
         return super.quorum(blockNumber);
     }
 
-    function state(uint256 proposalId)
+    function state(
+        uint proposalId
+    )
         public
         view
         override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
@@ -84,7 +87,9 @@ contract MyGovernor is
         return super.state(proposalId);
     }
 
-    function proposalNeedsQueuing(uint256 proposalId)
+    function proposalNeedsQueuing(
+        uint proposalId
+    )
         public
         view
         override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
@@ -97,37 +102,48 @@ contract MyGovernor is
         public
         view
         override(GovernorUpgradeable, GovernorSettingsUpgradeable)
-        returns (uint256)
+        returns (uint)
     {
         return super.proposalThreshold();
     }
 
     function _queueOperations(
-        uint256 proposalId,
+        uint proposalId,
         address[] memory targets,
-        uint256[] memory values,
+        uint[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (uint48) {
+    )
+        internal
+        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+        returns (uint48)
+    {
         return super._queueOperations(proposalId, targets, values, calldatas, descriptionHash);
     }
 
     function _executeOperations(
-        uint256 proposalId,
+        uint proposalId,
         address[] memory targets,
-        uint256[] memory values,
+        uint[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) {
+    )
+        internal
+        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+    {
         super._executeOperations(proposalId, targets, values, calldatas, descriptionHash);
     }
 
     function _cancel(
         address[] memory targets,
-        uint256[] memory values,
+        uint[] memory values,
         bytes[] memory calldatas,
         bytes32 descriptionHash
-    ) internal override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (uint256) {
+    )
+        internal
+        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+        returns (uint)
+    {
         return super._cancel(targets, values, calldatas, descriptionHash);
     }
 

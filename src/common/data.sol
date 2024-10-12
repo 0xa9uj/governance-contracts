@@ -1,22 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {TimelockControllerUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/governance/TimelockControllerUpgradeable.sol";
-import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
+import { TimelockControllerUpgradeable } from
+    '@openzeppelin/contracts-upgradeable/governance/TimelockControllerUpgradeable.sol';
+import { IVotes } from '@openzeppelin/contracts/governance/utils/IVotes.sol';
 
 struct GovernorParams {
     string name;
-    IVotes token;
+    address token; // IVotes
     TokenClockMode tokenClockMode;
-    uint256 quorum;
+    uint quorum;
     address initialOwner;
-    TimelockControllerUpgradeable timelock;
 }
+// TimelockControllerUpgradeable timelock; //TimelockControllerUpgradeable
 
 struct TimelockParams {
     address admin;
-    uint256 minDelay;
+    uint minDelay;
     address[] proposers;
     address[] executors;
 }
@@ -24,20 +24,20 @@ struct TimelockParams {
 struct TokenClockMode {
     uint48 initialVotingDelay;
     uint32 initialVotingPeriod;
-    uint256 initialProposalThreshold;
+    uint initialProposalThreshold;
 }
 
 struct ERC20Params {
     string name;
     string symbol;
     address initialOwner;
-    uint256 initialSupply;
-    uint256 maxSupply;
+    uint initialSupply;
+    uint maxSupply;
 }
 
 struct ERC721Params {
     string name;
     string symbol;
     address initialOwner;
-    uint256 maxSupply;
+    uint maxSupply;
 }
