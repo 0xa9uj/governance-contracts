@@ -13,7 +13,7 @@ import { NoncesUpgradeable } from '@openzeppelin/contracts-upgradeable/utils/Non
 import { ERC20Params } from '../common/data.sol';
 import { CommonErrors } from '../common/errors.sol';
 
-contract UpgradeableERC20GovernanceToken is
+contract ERC20GovernanceTokenUpgradeable is
     Initializable,
     ERC20Upgradeable,
     ERC20PermitUpgradeable,
