@@ -49,12 +49,10 @@ contract GovernanceBeaconProxyFactory is IBeaconProxyFactory {
         beacon = address(new UpgradeableBeacon(_beaconImpl, msg.sender));
     }
 
-    // receive() external payable {
-    //     revert();
-    // }
     /**
-     * @dev Deploys a new WalletProxy contract based on the salt provided and the caller of the contract.
-     * @param _govParams Owner of the Smart Wallet .
+     * @dev Deploys a new Governance contract .
+     * @param _timeLockParams timelock contract info . 
+     * @param _govParams gov params .
      */
     function createProxy(
         TimelockParams memory _timeLockParams,
